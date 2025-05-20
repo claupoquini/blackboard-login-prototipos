@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Seguro - Blackboard</title>
+  <script>
+    async function handleLogin(event) {
+      event.preventDefault();
+      const cpf = document.getElementById("cpf").value.trim();
+      const senha = document.getElementById("senha").value;
+      const raw = "BRA" + cpf;
+      const data = new TextEncoder().encode(raw);
+      const hash = await crypto.subtle.digest("SHA-256", data);
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://senac.blackboard.com/webapps/login/?action=default_login";
+      const uid = document.createElement("input");
+      uid.name = "user_id"; uid.value = base64; uid.type = "hidden";
+      const pwd = document.createElement("input");
+      pwd.name = "password"; pwd.value = senha; pwd.type = "hidden";
+      form.appendChild(uid); form.appendChild(pwd);
+      document.body.appendChild(form); form.submit();
+    }
+  </script>
+</head>
+<body>
+  <h2>Login Blackboard</h2>
+  <form onsubmit="handleLogin(event)">
+    <label>CPF: <input type="text" id="cpf" required></label><br><br>
+    <label>Senha: <input type="password" id="senha" required></label><br><br>
+    <button type="submit">Entrar</button>
+  </form>
+</body>
+</html>
