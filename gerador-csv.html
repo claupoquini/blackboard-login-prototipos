@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Identificadores Blackboard</title>
+</head>
+<body>
+  <h2>Upload de CSV com campo "usuario"</h2>
+  <input type="file" id="fileInput" accept=".csv">
+  <div id="status"></div>
+  <button onclick="baixar()">Baixar CSV Gerado</button>
+  <script>
+    let output = "";
+    async function gerar(texto) {
+      const data = new TextEncoder().encode(texto);
+      const hash = await crypto.subtle.digest("SHA-256", data);
+      return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+    }
+    document.getElementById("fileInput").addEventListener("change", async (e) => {
+      const f = e.target.files[0], r = new FileReader();
+      r.onload = async () => {
+        const l = r.result.split(/\r?\n/); output = "usuario,user_id\n";
+        for (let i = 1; i < l.length; i++) {
+          if (!l[i]) continue;
+          const u = l[i].split(",")[0];
+          const h = await gerar(u);
+          output += `${u},${h}\n`;
+        }
+        document.getElementById("status").innerText = "Pronto para download.";
+      };
+      r.readAsText(f);
+    });
+    function baixar() {
+      const blob = new Blob([output], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "saida_user_ids.csv";
+      a.click();
+    }
+  </script>
+</body>
+</html>
